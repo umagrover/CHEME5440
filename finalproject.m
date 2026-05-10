@@ -4,34 +4,7 @@
 clear all; close all;
 %% 
 
-% in M 
-% x0(1) = 16 * 10^-9; % initial concentration of free Ab (M), from figure on textbook, selected middle value
-% x0(2) = 7.5 * 10^-11; % initial concentration of free CD4 receptor 
-% x0(3) = 7.5 * 10^-11; % initial concentration of free CD70 receptor
-% x0(4) = 0; % initial concentration of Ab:CD4
-% x0(5) = 0; % initial concentration of Ab:CD70
-% x0(6) = 0; % initial concentration of CD4:Ab:CD70
-% 
-% k(1) = 2.8 * 10^5; % kon, CD4 (M^-1 s^-1)
-% k(2) = 2.6 * 10^-4; % koff, CD4 (s^-1)
-% k(3) = 2.0 * 10^5; % kon, CD70 (M^-1 s^-1)
-% k(4) = 4.9 * 10^-3; % koff, CD70 (s^-1)
-% kappa = 2*10^6; % avidity parameter, from textbook 
-
-% in nM 
-% x0(1) = 16; % initial concentration of free Ab (nM)
-% x0(2) = 7.5 * 10^-2; % initial conc of free CD4 receptor (nM)
-% x0(3) = 7.5 * 10^-2; % initial conc of free CD70 receptor (nM)
-% x0(4) = 0; % initial concentration of Ab:CD4 (nM)
-% x0(5) = 0; % initial concentration of Ab:CD70 (nM)
-% x0(6) = 0; % initial concentration of CD4:Ab:CD70 (nM)
-% k(1) = 2.8 * 10^-4; % kon, CD4 (nM^-1 s^-1)
-% k(2) = 2.6 * 10^-4; % koff, CD4 (s^-1)
-% k(3) = 2.0 * 10^-4; % kon, CD70 (nM^-1 s^-1)
-% k(4) = 4.9 * 10^-3; % koff, CD70 (s^-1)
-% kappa = 2*10^6; % avidity parameter, from textbook
-
-% Messing around in nM 
+% Using nM units
 x0(1) = 16; % initial concentration of free Ab (nM)
 x0(2) = 7.5 * 10^-2; % initial conc of free CD4 receptor (nM)
 x0(3) = 7.5 * 10^-2; % initial conc of free CD70 receptor (nM)
@@ -177,14 +150,15 @@ title(" now its more specific hopefully");
 grid on;
 hold off; 
 
-% --- Setup Global Constants (Add these if not defined yet) ---
-tspan = [0 5e5];        % Time for equilibrium
+%% Recrating Mazor et al. Figure
+% Setup Global Constants (Add these if not defined yet) ---
+tspan = [0 60*60];        % Time for equilibrium
 conv_factor = 6e5;      % Scale to #/cell
 Ab_range = logspace(-11, -7, 25); 
 kd_scenarios = [0.9, 70]; 
 results = cell(1, 2);
 
-% --- 1. Simulation Loop ---
+% Setting up simulation
 for s = 1:2
     % Set kinetic rates
     k(1) = 2.8 * 10^-4;              % kon, CD4
@@ -216,7 +190,7 @@ for s = 1:2
     results{s} = bound_data;
 end
 
-% --- 2. Plotting ---
+% Plotting figure
 figure(6); % Explicitly naming this Figure 6
 set(gcf, 'Position', [100, 100, 1000, 400]); % Set window size
 
