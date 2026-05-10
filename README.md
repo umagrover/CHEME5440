@@ -3,10 +3,10 @@ Final Project for Cheme 5440 by Ella and Uma
 
 ## Table of Contents
 
-- [Recreation of Mazor et al. Model](#mazor_recreation)
-- [ODEs for Recreation of Mazor et al. paper](#mazor_odes.m)
-- [Updated Model With Polypeptide Linker](#updated_model)
-- [ODEs for Updated Model with Polypeptide Linker](#updated_ODEs)
+- [Recreation of Mazor et al. Model](#CHEME5440/finalproject.m)
+- [ODEs for Recreation of Mazor et al. paper](#CHEME5440/finalprojectODES.m)
+- [Updated Model With Polypeptide Linker](#CHEME5440/finalprojectaltered.m)
+- [ODEs for Updated Model with Polypeptide Linker](#CHEME5440/finalprojectODES.m)
 
 
 ## Recreation of Mazor et al. Model
