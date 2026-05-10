@@ -1,4 +1,4 @@
-# CHEME5440
+# CHEME5440 Final Project
 Final Project for Cheme 5440 by Ella and Uma
 
 ## Table of Contents
