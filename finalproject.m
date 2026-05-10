@@ -1,10 +1,10 @@
 % CHEME 5440
 % Final Project 
+cd('C:\Users\umaag\OneDrive\Cornell\CHEME 5440\')
 
 clear all; close all;
-%% 
-
-% Using nM units
+%%
+% In nM
 x0(1) = 16; % initial concentration of free Ab (nM)
 x0(2) = 7.5 * 10^-2; % initial conc of free CD4 receptor (nM)
 x0(3) = 7.5 * 10^-2; % initial conc of free CD70 receptor (nM)
@@ -17,7 +17,7 @@ k(2) = 2.6 * 10^-4; % koff, CD4 (s^-1)
 k(3) = 2.0 * 10^-4; % kon, CD70 (nM^-1 s^-1)
 k(4) = 4.9 * 10^-3; % koff, CD70 (s^-1)
 % Kd CD70 = around 25 nM 
-kappa = 2*10^2; % avidity parameter, from textbook
+kappa = 2*10^6; % avidity parameter, from textbook
 
 % Time-span
 tspan = [0 60*60]; % time-span in sec
@@ -150,22 +150,23 @@ title(" now its more specific hopefully");
 grid on;
 hold off; 
 
-%% Recrating Mazor et al. Figure
-% Setup Global Constants (Add these if not defined yet) ---
+%% Recreation of Mazor et al. figure
+% Constants
 tspan = [0 60*60];        % Time for equilibrium
-conv_factor = 6e5;      % Scale to #/cell
+conv_factor = 9e8;      % Scale to #/cell
 Ab_range = logspace(-11, -7, 25); 
 kd_scenarios = [0.9, 70]; 
 results = cell(1, 2);
+avagardo = 6.022e23;
 
-% Setting up simulation
+% Simulation to calculate values at each concentration of Ab
 for s = 1:2
     % Set kinetic rates
     k(1) = 2.8 * 10^-4;              % kon, CD4
     k(2) = k(1) * kd_scenarios(s);   % koff, CD4 
     k(3) = 2.0 * 10^-4;              % kon, CD70
     k(4) = k(3) * 25;                % koff, CD70 
-    kappa = 2*10^2;                  
+    kappa = 3*10^6;                  
     
     bound_data = zeros(length(Ab_range), 3); 
 
@@ -175,22 +176,22 @@ for s = 1:2
         % CD4+/CD70+ 
         x0 = [Ab_init_nM, 0.075, 0.075, 0, 0, 0];
         [~, x_out] = ode15s(@(t,x) finalprojectODEs(t,x,k,kappa), tspan, x0);
-        bound_data(i, 1) = sum(x_out(end, 4:6)) * conv_factor;
+        bound_data(i, 1) = (sum(x_out(end, 4:6)) * avagardo * 1e-9)/conv_factor;
         
         % CD4+/CD70-
         x0 = [Ab_init_nM, 0.075, 0, 0, 0, 0];
         [~, x_out] = ode15s(@(t,x) finalprojectODEs(t,x,k,kappa), tspan, x0);
-        bound_data(i, 2) = sum(x_out(end, 4:6)) * conv_factor;
+        bound_data(i, 2) = (sum(x_out(end, 4:6)) * avagardo * 1e-9)/conv_factor;
         
         % CD4-/CD70+
         x0 = [Ab_init_nM, 0, 0.075, 0, 0, 0];
         [~, x_out] = ode15s(@(t,x) finalprojectODEs(t,x,k,kappa), tspan, x0);
-        bound_data(i, 3) = sum(x_out(end, 4:6)) * conv_factor;
+        bound_data(i, 3) = (sum(x_out(end, 4:6)) * avagardo * 1e-9)/conv_factor;
     end
     results{s} = bound_data;
 end
 
-% Plotting figure
+% Creating the Plot
 figure(6); % Explicitly naming this Figure 6
 set(gcf, 'Position', [100, 100, 1000, 400]); % Set window size
 
@@ -211,7 +212,7 @@ for s = 1:2
     ylim([0 6e4]);
     grid on;
     
-    % Dynamic labels placed near the end of the curves
+    % Labels located at end of curves
     text(2e-8, data(end,1), 'CD4^+/CD70^+', 'FontSize', 8);
     text(2e-8, data(end,2), 'CD4^+/CD70^-', 'FontSize', 8);
     text(2e-8, data(end,3), 'CD4^-/CD70^+', 'FontSize', 8);
