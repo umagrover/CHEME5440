@@ -5,7 +5,7 @@ clear all; close all;
 %% Recreating Textbook Figure on Relationship between Aeff and L
 
 % Messing around in nM 
-x0(1) = 16; % initial concentration of free Ab (nM)
+x0(1) = 10; % initial concentration of free Ab (nM)
 x0(2) = 7.5 * 10^-2; % initial conc of free CD4 receptor (nM)
 x0(3) = 7.5 * 10^-2; % initial conc of free CD70 receptor (nM)
 x0(4) = 0; % initial concentration of Ab:CD4 (nM)
@@ -20,11 +20,9 @@ k(4) = 4.9 * 10^-3; % koff, CD70 (s^-1)
 
 
 hold on
-%For our updated scenario iwth a different [CD4eff] concentration
-d= 3.8;
-
+%For our updated scenario with a different [CD4eff] concentration
 d_vals = linspace(10,60,6);
-figure (1)
+figure(1)
 hold on
 x = 0;
 startlength = [1,4,9,14,19,25];
@@ -68,63 +66,59 @@ hold off
 
 %Set up constants
 tspan = [0 60*60];        % Time for equilibrium
-conv_factor = 9e8;      % Scale to #/cell
-Ab_range = logspace(-11, -2, 100); 
-kd_scenarios = [0.9, 70]; 
+conv_factor = 9e8;      % Scaling factor
+Ab_range = logspace(-11, -7, 100); 
+kd_scenarios = [0.9, 70]; %nM
 results = cell(1, 2);
-avagardo = 6.022e23;
+avagadro = 6.022e23;
 
 %finding Aeff value
-d = 40;
-L = 40;
-Aeff = (5.03 .* L.^(-3/2) .* exp((-6.58e-2 .* d.^2) ./ L) .* ( ...
+d = 22;
+L = 15;
+% calculating Aeff
+Aeff = 5.03 * L^(-3/2) * exp((-6.58e-2 * d^2) / L) * ( ...
             1 ...
-            - (0.987 ./ L) ...
-            + 0.139 .* (d.^2 ./ L.^2) ...
-            - 2.51e-3 .* (d.^4 ./ L.^3) ...
-            - (0.308 ./ L.^2) ...
-            - 0.150 .* (d.^2 ./ L.^3) ...
-            + 0.0204 .* (d.^4 ./ L.^4) ...
-            - 5.17e-4 .* (d.^6 ./ L.^5) ...
-            + 3.14e-6 .* (d.^8 ./ L.^6) ...
-))*1e9;
+            - (0.987 / L) ...
+            + 0.139 * (d.^2 / L^2) ...
+            - 2.51e-3 * (d^4 / L.^3) ...
+            - (0.308 / L^2) ...
+            - 0.150 * (d^2 / L.^3) ...
+            + 0.0204 * (d^4 / L^4) ...
+            - 5.17e-4 * (d^6 / L^5) ...
+            + 3.14e-6 * (d^8 / L^6) ...
+)*1e9;
 
-%Loop
-d = d_vals(4); %Using d = 40 A
 for s = 1:2
-    % Set kinetic rates
-    k(1) = 2.8 * 10^-4;              % kon, CD4
-    k(2) = k(1) * kd_scenarios(s);   % koff, CD4 
-    k(3) = 2.0 * 10^-4;              % kon, CD70
-    k(4) = k(3) * 25;                % koff, CD70            
+    % kinetic rates in molar
+    k(1) = 2.8e-4; %converting nanomolars to molars         
+    k(3) = 2.0e-4;
+    k(2) = k(1) * kd_scenarios(s); 
+    k(4) = k(3) * 25; 
+    disp(k(2))
     
     bound_data = zeros(length(Ab_range), 3); 
 
-    pcd4 = 1;
-    pcd70 =1;
-
     for i = 1:length(Ab_range)
-        Ab_init_nM = Ab_range(i) * 1e9;
+        Ab_init_nM = Ab_range(i)*1e9;
         
-        o=50;
         % CD4+/CD70+ 
-        x0 = [Ab_init_nM, 0.075, 0.075, 0, 0, 0];
-        [~, x_out] = ode15s(@(t,x) finalprojectODEsaltered(t,x,k,Aeff_vals(o),pcd4,pcd70), tspan, x0);
-        bound_data(i, 1) = (sum(x_out(end, 4:6)) * avagardo * 1e-9)/conv_factor;
+        x0 = [Ab_init_nM, (4.6e4/avagadro)*conv_factor*1e9, (5.2e4/avagadro)*conv_factor*1e9, 0, 0, 0];
+        [~, x_out] = ode15s(@(t,x) finalprojectODEsaltered(t,x,k,Aeff), tspan, x0);
+        bound_data(i, 1) = (sum(x_out(end, 4:6)) * avagadro * 1e-9)/conv_factor;
             
         % CD4+/CD70-
-        x0 = [Ab_init_nM, 0.075, 0, 0, 0, 0];
-        [~, x_out] = ode15s(@(t,x) finalprojectODEsaltered(t,x,k,Aeff_vals(o),pcd4,pcd70), tspan, x0);
-        bound_data(i, 2) = (sum(x_out(end, 4:6)) * avagardo * 1e-9)/conv_factor;
-            
+        x0 = [Ab_init_nM, (3.8e4/avagadro)*conv_factor*1e9, 0, 0, 0, 0];
+        [~, x_out] = ode15s(@(t,x) finalprojectODEsaltered(t,x,k,Aeff), tspan, x0);
+        bound_data(i, 2) = (sum(x_out(end, 4:6)) * avagadro * 1e-9)/conv_factor;
+
         % CD4-/CD70+
-        x0 = [Ab_init_nM, 0, 0.075, 0, 0, 0];
-        [~, x_out] = ode15s(@(t,x) finalprojectODEsaltered(t,x,k,Aeff_vals(o),pcd4,pcd70), tspan, x0);
-        bound_data(i, 3) = (sum(x_out(end, 4:6)) * avagardo * 1e-9)/conv_factor;
+        x0 = [Ab_init_nM, 0, (3.1e4/avagadro)*conv_factor*1e9, 0, 0, 0];
+        [~, x_out] = ode15s(@(t,x) finalprojectODEsaltered(t,x,k,Aeff), tspan, x0);
+        bound_data(i, 3) = (sum(x_out(end, 4:6)) * avagadro * 1e-9)/conv_factor;
     end
+    
     results{s} = bound_data; 
 end
-xlim([1e-12,1e-6])
 set(gcf, 'Position', [100, 100, 1000, 400]); % Set window size
 
 figure(2);
@@ -138,78 +132,13 @@ for s = 1:2
     semilogx(Ab_range, data(:,3), 'k:', 'LineWidth', 1.2);
     
     % Labels & Formatting
-    xlabel('[Ab] (M)');
-    ylabel('Bound Ab (#/cell)');
+    xlabel('[scFvs] (M)');
+    ylabel('Bound scFvs (#/cell)');
     % Fixed the num24 typo here:
     title(['K_{d,CD4} = ', num2str(kd_scenarios(s)), ' nM']);
-    %ylim([0 6e4]);
-    %xlim([10e-12,10e-8])
     grid on;
-    
-    % Dynamic labels placed near the end of the curves
-    text(2e-8, data(end,1), 'CD4^+/CD70^+', 'FontSize', 8);
-    text(2e-8, data(end,2), 'CD4^+/CD70^-', 'FontSize', 8);
-    text(2e-8, data(end,3), 'CD4^-/CD70^+', 'FontSize', 8);
+
+    legend('CD4+/CD70+', 'CD4+/CD70-','CD4-/CD70+')
+
 end
-xlim([1e-12,1e-6])
 
-
-%% Linker Length Variation and Monovalent/Bivalent Binding
-%Bound complex 2 while varying linker length
-Ab_vals_2 = [Ab_range(40), Ab_range(50), Ab_range(60)] ; %Choosing values to test
-c2 = zeros(length(L_vals),length(Ab_vals_2));
-c1 = zeros(length(L_vals),length(Ab_vals_2));
-for c = 1:length(L_vals)
-    L = L_vals(c);
-    %Aeff in molars, so convert to nM, again using d = 40 from above
-    Aeff = (5.03 .* L.^(-3/2) .* exp((-6.58e-2 .* d.^2) ./ L) .* ( ...
-        1 ...
-        - (0.987 ./ L) ...
-        + 0.139 .* (d.^2 ./ L.^2) ...
-        - 2.51e-3 .* (d.^4 ./ L.^3) ...
-        - (0.308 ./ L.^2) ...
-        - 0.150 .* (d.^2 ./ L.^3) ...
-        + 0.0204 .* (d.^4 ./ L.^4) ...
-        - 5.17e-4 .* (d.^6 ./ L.^5) ...
-        + 3.14e-6 .* (d.^8 ./ L.^6) ...
-     ))*1e9;
-
-    for i = 1:length(Ab_vals_2)
-        x0 = [Ab_vals_2(i), 0.075, 0.075, 0, 0, 0];
-        [~, x_out2] = ode15s(@(t,x) finalprojectODEsaltered(t,x,k,Aeff,pcd4,pcd70), tspan, x0);
-        c2(c,i) = (x_out2(end, 6) * avagardo * 1e-9)/conv_factor;
-        c1(c,i) = (sum(x_out2(end, 4:5)) * avagardo * 1e-9)/conv_factor;
-    end
-end
-figure(3)
-subplot(1,2,1)
-hold on
-for o = 1:length(Ab_vals_2)
-    plot(L_vals,c2(:,o),'Linewidth',2)
-
-    %labels
-    text(L_vals(end)*0.95, c2(end,o), num2str(Ab_vals_2(o)), 'FontSize', 8);
-end
-hold off
-set(gca, 'YScale', 'log');
-xlabel('Linker Length')
-ylabel('C2 complex')
-grid on
-hold off
-
-%c1
-subplot(1,2,2)
-hold on
-for o = 1:length(Ab_vals_2)
-    plot(L_vals,c1(:,o),'Linewidth',2)
-
-    %labels
-    text(L_vals(end)*0.95, c1(end,o), num2str(Ab_vals_2(o)), 'FontSize', 8);
-end
-hold off
-set(gca, 'YScale', 'log');
-xlabel('Linker Length')
-ylabel('C1 complex')
-
-grid on
-hold off
